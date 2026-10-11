@@ -1,0 +1,51 @@
+name: Murmur release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Install dependencies
+        run: npm ci
+      - name: Native helpers
+        # afterPackMurmur.js fails the build when any of these is missing.
+        run: |
+          npm run compile:winkeys
+          npm run compile:winpaste
+          npm run compile:text-monitor
+          npm run download:nircmd
+      - name: Type check and tests
+        run: |
+          npx tsc --noEmit -p src
+          npm test
+      - name: Build installer
+        run: |
+          npm run build:renderer
+          node scripts/build-murmur.js
+      - name: Checksums
+        shell: pwsh
+        run: |
+          Get-ChildItem dist-murmur\Murmur-Setup-*.exe | ForEach-Object {
+            $hash = (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower()
+            "$hash  $($_.Name)" | Out-File -Encoding ascii "$($_.FullName).sha256"
+          }
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist-murmur/Murmur-Setup-*.exe
+            dist-murmur/Murmur-Setup-*.exe.sha256
+          generate_release_notes: true
