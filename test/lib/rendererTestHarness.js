@@ -7,7 +7,10 @@ const path = require("node:path");
 function installBrowserGlobals(t, { initialStorage = {}, window: windowProps = {} } = {}) {
   const originalWindow = globalThis.window;
   const originalLocalStorage = globalThis.localStorage;
-  const values = new Map(Object.entries(initialStorage));
+  // The product's default agent name is Murmur and startup adds it to the
+  // dictionary (a setDictionary call most stubs lack). These tests were written
+  // around a dictionary that already holds the default name, so pin it.
+  const values = new Map(Object.entries({ agentName: "OpenWhispr", ...initialStorage }));
   const storage = {
     getItem: (key) => (values.has(key) ? values.get(key) : null),
     setItem: (key, value) => values.set(key, String(value)),

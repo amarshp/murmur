@@ -3,9 +3,9 @@ const assert = require("node:assert/strict");
 const { loadAudioManager } = require("./harness/audioManager");
 
 // A realtime-only BYOK provider (Deepgram, AssemblyAI) has no file endpoint, so
-// a recording it could not stream is transcribed by OpenAI instead
+// a recording it could not stream is transcribed by Groq's Whisper instead
 // (withBatchFallbackProvider). The guard that matters is that the audio goes
-// only there, and only with the OpenAI key, never the realtime provider's key.
+// only there, and only with the Groq key, never the realtime provider's key.
 
 async function loadManager(t) {
   const { createManager } = await loadAudioManager(t, {
@@ -24,7 +24,7 @@ function setSettings(overrides = {}) {
     cloudTranscriptionProvider: "deepgram",
     cloudTranscriptionModel: "nova-3",
     deepgramApiKey: "",
-    openaiApiKey: "",
+    groqApiKey: "",
     allowLocalFallback: false,
     preferredLanguage: "en",
     customDictionary: [],
@@ -54,11 +54,11 @@ function recordFetch(t, body = { text: "hello there" }) {
   return calls;
 }
 
-test("batch dictation on a keyless realtime-only provider needs the OpenAI key and sends nothing", async (t) => {
+test("batch dictation on a keyless realtime-only provider needs the Groq key and sends nothing", async (t) => {
   const manager = await loadManager(t);
   setSettings();
   const calls = recordFetch(t);
-  globalThis.window.electronAPI.getOpenAIKey = async () => "";
+  globalThis.window.electronAPI.getGroqKey = async () => "";
 
   await assert.rejects(manager.processWithOpenAIAPI(audioBlob()), (error) => {
     assert.equal(error.code, "API_KEY_MISSING");
@@ -67,17 +67,17 @@ test("batch dictation on a keyless realtime-only provider needs the OpenAI key a
   assert.equal(calls.length, 0, "no audio leaves the machine without a key");
 });
 
-test("batch dictation on a keyed realtime-only provider goes to OpenAI with the OpenAI key", async (t) => {
+test("batch dictation on a keyed realtime-only provider goes to Groq with the Groq key", async (t) => {
   const manager = await loadManager(t);
-  setSettings({ deepgramApiKey: "dg-test", openaiApiKey: "sk-test-openai-key-0000000000000000" });
+  setSettings({ deepgramApiKey: "dg-test", groqApiKey: "gsk-test-groq-key-0000000000000000" });
   const calls = recordFetch(t);
 
   await manager.processWithOpenAIAPI(audioBlob()).catch(() => {});
 
   assert.equal(calls.length, 1);
-  assert.match(calls[0].endpoint, /^https:\/\/api\.openai\.com\//);
+  assert.match(calls[0].endpoint, /^https:\/\/api\.groq\.com\//);
   const authorization = JSON.stringify(calls[0].headers);
-  assert.match(authorization, /sk-test-openai-key/);
+  assert.match(authorization, /gsk-test-groq-key/);
   assert.doesNotMatch(authorization, /dg-test/);
-  assert.equal(calls[0].body.get("model"), "gpt-4o-transcribe");
+  assert.equal(calls[0].body.get("model"), "whisper-large-v3-turbo");
 });

@@ -63,10 +63,11 @@ export const STREAMING_ONLY_PROVIDERS = new Set(["deepgram", "assemblyai"]);
 // A streaming-only provider has no file endpoint, so a recording it could not
 // stream (dropped connection, no final text) or a History retry would fail
 // closed and the utterance would be lost. Batch work for those providers goes
-// to OpenAI instead, which reads the same recording.
+// to Groq's Whisper instead, with the Groq key that cleanup already uses. With
+// no Groq key the request fails closed with the missing-key message.
 export const BATCH_FALLBACK_PROVIDER = Object.freeze({
-  provider: "openai",
-  model: "gpt-4o-transcribe",
+  provider: "groq",
+  model: "whisper-large-v3-turbo",
 });
 
 export function withBatchFallbackProvider<

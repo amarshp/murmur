@@ -168,8 +168,12 @@ test(
   })
 );
 
+// XDG_DATA_DIRS is split on ":", which a Windows drive letter breaks, so on a
+// Windows runner whose temp and workspace drives differ the system icon is not
+// found (failed on the public repo's windows-latest CI). The module is Linux-only.
 test(
   "an icon the package already installed is referenced, not copied into the user theme",
+  { skip: process.platform === "win32" && "Linux-only XDG path handling" },
   withTmpXdgDirs(async (root) => {
     const { setAutostartEnabled, getDesktopFilePath } = await load();
 

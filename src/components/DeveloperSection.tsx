@@ -114,7 +114,7 @@ export default function DeveloperSection() {
   return (
     <div className="space-y-8">
       <div className="mb-5">
-        <h3 className="text-[15px] font-semibold text-foreground tracking-tight">
+        <h3 className="text-xs font-semibold tracking-tight text-foreground">
           {t("developerSection.title")}
         </h3>
         <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
@@ -191,7 +191,7 @@ export default function DeveloperSection() {
       {/* What gets logged */}
       <div>
         <div className="mb-5">
-          <h3 className="text-[15px] font-semibold text-foreground tracking-tight">
+          <h3 className="text-xs font-semibold tracking-tight text-foreground">
             {t("developerSection.whatGetsLogged.title")}
           </h3>
         </div>
@@ -236,7 +236,7 @@ export default function DeveloperSection() {
       {debugEnabled && (
         <div>
           <div className="mb-5">
-            <h3 className="text-[15px] font-semibold text-foreground tracking-tight">
+            <h3 className="text-xs font-semibold tracking-tight text-foreground">
               {t("developerSection.sharing.title")}
             </h3>
           </div>

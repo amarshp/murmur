@@ -1,6 +1,6 @@
 # Murmur
 
-Hold a key, speak, and your words are typed wherever your cursor is.
+Press a key, speak, and your words are typed wherever your cursor is.
 
 Murmur is a small Windows dictation app.
 It streams your voice to Deepgram while you speak, runs a second pass over the finished recording for accuracy, and optionally lets Groq clean up filler words and punctuation.
@@ -22,8 +22,7 @@ There is no account and no Murmur server.
 | Key | Needed | What it does |
 | --- | --- | --- |
 | Deepgram | Yes | Turns your speech into text, live and again on the finished recording. |
-| Groq | No | Cleans up filler words and punctuation. Without it, text is pasted as transcribed. |
-| OpenAI | No | Backup transcription if Deepgram cannot be reached. |
+| Groq | No | Cleans up filler words and punctuation, and transcribes if Deepgram cannot be reached. Without it, text is pasted as transcribed. |
 
 Paste the keys on the first screen.
 You can change them later in Settings.
@@ -31,7 +30,13 @@ Keys are stored encrypted on your computer.
 
 ## Use
 
-Hold the hotkey (default Ctrl+Win), speak, and release.
+Pick your own hotkey in Settings, Hotkeys.
+Two ways to use it:
+
+- **Press once** (default): press the hotkey to start, speak, press it again to stop.
+- **Hold to talk**: hold the hotkey while you speak, let go to finish.
+
+The default hotkey is Ctrl+Win.
 The text is pasted at your cursor and also stays on the clipboard, so you can paste it by hand if the app you were in did not accept it.
 If a transcription fails, the recording is kept in History and you can retry it.
 

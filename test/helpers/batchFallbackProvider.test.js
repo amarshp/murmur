@@ -4,7 +4,7 @@ const assert = require("node:assert/strict");
 const loadRoute = () => import("../../src/helpers/transcriptionRoute.ts");
 const loadFallback = () => import("../../src/helpers/transcriptionFallback.js");
 
-test("a streaming-only provider's batch work is routed to OpenAI", async () => {
+test("a streaming-only provider's batch work is routed to Groq", async () => {
   const { withBatchFallbackProvider, BATCH_FALLBACK_PROVIDER } = await loadRoute();
   const swapped = withBatchFallbackProvider({
     cloudTranscriptionProvider: "deepgram",
@@ -22,13 +22,13 @@ test("providers with a file endpoint keep their own batch route", async () => {
   assert.equal(withBatchFallbackProvider(groq), groq);
 });
 
-test("the fallback model is one the OpenAI registry entry lists", async () => {
+test("the fallback model is one the Groq registry entry lists", async () => {
   const { BATCH_FALLBACK_PROVIDER } = await loadRoute();
   const registry = require("../../src/models/modelRegistryData.json");
-  const openai = registry.transcriptionProviders.find(
+  const provider = registry.transcriptionProviders.find(
     (p) => p.id === BATCH_FALLBACK_PROVIDER.provider
   );
-  assert.ok(openai.models.some((m) => m.id === BATCH_FALLBACK_PROVIDER.model));
+  assert.ok(provider.models.some((m) => m.id === BATCH_FALLBACK_PROVIDER.model));
 });
 
 test("a Deepgram stream that cannot start keeps the recording for the batch fallback", async () => {

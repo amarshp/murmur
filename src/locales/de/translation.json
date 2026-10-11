@@ -659,6 +659,7 @@
       "empty": "Starte dein erstes Diktat",
       "emptyDescription": "Dein diktierter Text erscheint hier.",
       "shortcutHint": "Drücke {{shortcut}} und sprich los.",
+      "shortcutHintHold": "Hold {{shortcut}} while you speak, then let go.",
       "dataRetentionDisabled": "Datenaufbewahrung ist deaktiviert. Transkriptionen und Audio werden nicht im Verlauf gespeichert.",
       "welcomeBack": "Willkommen zurück",
       "welcomeBackNamed": "Willkommen zurück, {{name}}",
@@ -4882,7 +4883,7 @@
   },
   "murmurSetup": {
     "title": "Welcome to Murmur",
-    "subtitle": "Hold {{hotkey}}, speak, and your words are typed where your cursor is. Add your keys to start.",
+    "subtitle": "Press {{hotkey}} to dictate: your words are typed where your cursor is. Add your keys to start. You can change the shortcut, and hold-to-talk or press-twice, in Settings.",
     "optional": "optional",
     "getKey": "Get a key",
     "keyOk": "Key works",
@@ -4897,11 +4898,7 @@
     },
     "groq": {
       "label": "Groq key",
-      "help": "Cleans up filler words and punctuation. Without it, text is pasted as transcribed."
-    },
-    "openai": {
-      "label": "OpenAI key",
-      "help": "Backup transcription if Deepgram cannot be reached."
+      "help": "Cleans up filler words and punctuation, and transcribes if Deepgram cannot be reached. Without it, text is pasted as transcribed."
     }
   },
   "murmurKeys": {

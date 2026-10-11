@@ -54,7 +54,7 @@ const MONITOR_ABOVE = { workArea: { x: -451, y: -1440, width: 2560, height: 1440
 test("the panel lands on a monitor mounted above the primary display", () => {
   const position = WindowPositionUtil.getMainWindowPosition(MONITOR_ABOVE, null, "bottom-right");
 
-  assert.deepEqual(position, { x: 1897, y: -124, width: 208, height: 120 });
+  assert.deepEqual(position, { x: 1909, y: -112, width: 208, height: 120 });
   assert.ok(position.y < 0, "a display above the primary one needs a negative y");
 });
 
@@ -66,8 +66,14 @@ test("every panel anchor stays inside a negative-origin display", () => {
       anchor
     );
     const { workArea } = MONITOR_ABOVE;
-    assert.ok(x >= workArea.x && x + width <= workArea.x + workArea.width, `${anchor} x`);
-    assert.ok(y >= workArea.y && y + height <= workArea.y + workArea.height, `${anchor} y`);
+    // The window may overhang by its 8px transparent headroom; the pill, 12px
+    // inside it, must stay on the display.
+    const inset = 12;
+    assert.ok(
+      x + inset >= workArea.x && x + width - inset <= workArea.x + workArea.width,
+      `${anchor} x`
+    );
+    assert.ok(y >= workArea.y && y + height - inset <= workArea.y + workArea.height, `${anchor} y`);
   }
 });
 
@@ -94,4 +100,20 @@ test("clamps against negative-origin displays and falls back to bounds", () => {
     WindowPositionUtil.clampToWorkArea({ x: -900, y: -2000, width: 400, height: 500 }, external),
     { x: -451, y: -1440 }
   );
+});
+
+test("the default pill position puts the pill 4px from the corner, its headroom overhanging", () => {
+  const display = { workArea: { x: 0, y: 0, width: 1920, height: 1032 } };
+  const position = WindowPositionUtil.getMainWindowPosition(display, null, "bottom-right");
+  // The pill is inset 12px in its 208x120 window.
+  assert.equal(1920 - (position.x + 208 - 12), 4);
+  assert.equal(1032 - (position.y + 120 - 12), 4);
+});
+
+test("a pill-sized window may overhang left, right and bottom but not the top", () => {
+  const display = { workArea: { x: 0, y: 0, width: 1920, height: 1032 } };
+  const clamp = (x, y) =>
+    WindowPositionUtil.clampToWorkArea({ x, y, width: 208, height: 120 }, display);
+  assert.deepEqual(clamp(-100, -100), { x: -8, y: 0 });
+  assert.deepEqual(clamp(5000, 5000), { x: 1920 - 208 + 8, y: 1032 - 120 + 8 });
 });

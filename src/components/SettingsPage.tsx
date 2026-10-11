@@ -1294,20 +1294,6 @@ export default function SettingsPage({
 
   const [currentVersion, setCurrentVersion] = useState<string>("");
   const [updateCheckOn, setUpdateCheckOn] = useState(isUpdateCheckEnabled);
-  const [isRemovingModels, setIsRemovingModels] = useState(false);
-  const [cachePathHint, setCachePathHint] = useState(
-    typeof navigator !== "undefined" && /Windows/i.test(navigator.userAgent)
-      ? "%USERPROFILE%\\.cache\\openwhispr"
-      : "~/.cache/openwhispr"
-  );
-  useEffect(() => {
-    window.electronAPI
-      ?.getModelCacheRoot?.()
-      .then((root) => {
-        if (root) setCachePathHint(root);
-      })
-      .catch(() => {});
-  }, []);
 
   const {
     status: updateStatus,
@@ -1565,6 +1551,9 @@ export default function SettingsPage({
     linuxInputAccessDenied,
   } = useHotkeyModeInfo("settings", dictationKey);
   const [effectiveDefaultHotkey, setEffectiveDefaultHotkey] = useState<string | null>(null);
+  // dictationKey stays empty until the user picks one; the registered key (or
+  // the platform default) is what is actually in force, so show that.
+  const activeDictationKey = useSettingsStore((s) => s.activeDictationKey);
   const [linuxPttAvailable, setLinuxPttAvailable] = useState(true);
 
   const platform = getCachedPlatform();
@@ -1739,54 +1728,6 @@ export default function SettingsPage({
       },
     });
   };
-
-  const handleRemoveModels = useCallback(() => {
-    if (isRemovingModels) return;
-
-    showConfirmDialog({
-      title: t("settingsPage.developer.removeModels.title"),
-      description: t("settingsPage.developer.removeModels.description", { path: cachePathHint }),
-      confirmText: t("settingsPage.developer.removeModels.confirmText"),
-      variant: "destructive",
-      onConfirm: async () => {
-        setIsRemovingModels(true);
-        try {
-          const results = await Promise.allSettled([
-            window.electronAPI?.deleteAllWhisperModels?.(),
-            window.electronAPI?.deleteAllParakeetModels?.(),
-            window.electronAPI?.modelDeleteAll?.(),
-          ]);
-
-          const anyFailed = results.some(
-            (r) =>
-              r.status === "rejected" || (r.status === "fulfilled" && r.value && !r.value.success)
-          );
-
-          if (anyFailed) {
-            showAlertDialog({
-              title: t("settingsPage.developer.removeModels.failedTitle"),
-              description: t("settingsPage.developer.removeModels.failedDescription"),
-            });
-          } else {
-            // Every local model is gone, so no local selection can still resolve.
-            clearMissingLocalModelSelections(() => false);
-            window.dispatchEvent(new Event("openwhispr-models-cleared"));
-            showAlertDialog({
-              title: t("settingsPage.developer.removeModels.successTitle"),
-              description: t("settingsPage.developer.removeModels.successDescription"),
-            });
-          }
-        } catch {
-          showAlertDialog({
-            title: t("settingsPage.developer.removeModels.failedTitle"),
-            description: t("settingsPage.developer.removeModels.failedDescriptionShort"),
-          });
-        } finally {
-          setIsRemovingModels(false);
-        }
-      },
-    });
-  }, [isRemovingModels, cachePathHint, showConfirmDialog, showAlertDialog, t]);
 
   const { isSignedIn, isLoaded, user, refetch } = useAuth();
   const {
@@ -3837,7 +3778,7 @@ EOF`,
               <SettingsPanel>
                 <SettingsPanelRow>
                   <HotkeyListInput
-                    value={dictationKey}
+                    value={dictationKey || activeDictationKey || effectiveDefaultHotkey || ""}
                     onChange={(list) => registerHotkey(list)}
                     validate={validateDictationHotkey}
                     disabled={isHotkeyRegistering}
@@ -3892,7 +3833,6 @@ EOF`,
                 )}
               </SettingsPanel>
             </div>
-
           </div>
         );
 
@@ -4344,40 +4284,6 @@ EOF`,
               />
 
               <div className="space-y-4">
-                <SettingsPanel>
-                  <SettingsPanelRow>
-                    <SettingsRow
-                      label={t("settingsPage.developer.modelCache")}
-                      description={
-                        <span dir="ltr" className="block break-all">
-                          {cachePathHint}
-                        </span>
-                      }
-                    >
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => window.electronAPI?.openWhisperModelsFolder?.()}
-                        >
-                          <FolderOpen className="me-1.5 h-3.5 w-3.5" />
-                          {t("settingsPage.developer.open")}
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={handleRemoveModels}
-                          disabled={isRemovingModels}
-                        >
-                          {isRemovingModels
-                            ? t("settingsPage.developer.removing")
-                            : t("settingsPage.developer.clearCache")}
-                        </Button>
-                      </div>
-                    </SettingsRow>
-                  </SettingsPanelRow>
-                </SettingsPanel>
-
                 <SettingsPanel>
                   <SettingsPanelRow>
                     <SettingsRow

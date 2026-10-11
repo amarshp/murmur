@@ -1,0 +1,16 @@
+Murmur - install and first run
+
+1. Run Murmur-Setup-<version>.exe.
+   Windows may say "Windows protected your PC" because the installer is not code signed yet.
+   Click More info, then Run anyway.
+2. On the first screen paste a Deepgram key (required).
+   Get one at https://console.deepgram.com
+   A Groq key is optional: it cleans up filler words and punctuation.
+   Get one at https://console.groq.com/keys
+3. Click Start dictating.
+4. Click where you want text, press the hotkey (default Ctrl+Win), speak, press it again to stop.
+   Change the hotkey, or switch to hold-to-talk, in Settings > Hotkeys.
+
+Your audio and text go only to the providers whose keys you add.
+Murmur has no account and no servers of its own.
+To uninstall: Windows Settings > Apps > Murmur.

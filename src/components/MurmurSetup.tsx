@@ -8,7 +8,7 @@ import { formatHotkeyLabel } from "../utils/hotkeys";
 import { PillEmber } from "./dictation/PillEmber";
 import logoMark from "../assets/logo.svg";
 
-type Provider = "deepgram" | "groq" | "openai";
+type Provider = "deepgram" | "groq";
 type CheckState = "idle" | "checking" | "ok" | "rejected" | "network";
 
 interface KeyRow {
@@ -20,7 +20,6 @@ interface KeyRow {
 const KEY_ROWS: KeyRow[] = [
   { provider: "deepgram", required: true, url: "https://console.deepgram.com/signup" },
   { provider: "groq", required: false, url: "https://console.groq.com/keys" },
-  { provider: "openai", required: false, url: "https://platform.openai.com/api-keys" },
 ];
 
 interface MurmurSetupProps {
@@ -41,17 +40,14 @@ export default function MurmurSetup({ onComplete }: MurmurSetupProps) {
   const dictationKey = useSettingsStore((s) => s.dictationKey);
   const setDeepgramApiKey = useSettingsStore((s) => s.setDeepgramApiKey);
   const setGroqApiKey = useSettingsStore((s) => s.setGroqApiKey);
-  const setOpenaiApiKey = useSettingsStore((s) => s.setOpenaiApiKey);
 
   const [keys, setKeys] = useState<Record<Provider, string>>({
     deepgram: "",
     groq: "",
-    openai: "",
   });
   const [checks, setChecks] = useState<Record<Provider, CheckState>>({
     deepgram: "idle",
     groq: "idle",
-    openai: "idle",
   });
   const [launchAtLogin, setLaunchAtLogin] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -82,7 +78,6 @@ export default function MurmurSetup({ onComplete }: MurmurSetupProps) {
     const groqKey = keys.groq.trim();
     setDeepgramApiKey(keys.deepgram.trim());
     if (groqKey) setGroqApiKey(groqKey);
-    if (keys.openai.trim()) setOpenaiApiKey(keys.openai.trim());
     // Without a Groq key there is no cleanup model to call: text is pasted as
     // transcribed instead of failing on every dictation.
     useSettingsStore.setState({ useCleanupModel: groqKey.length > 0 });

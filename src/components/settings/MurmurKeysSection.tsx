@@ -7,18 +7,17 @@ import { Toggle } from "../ui/toggle";
 import { useSettingsStore } from "../../stores/settingsStore";
 
 interface KeyRow {
-  id: "deepgram" | "groq" | "openai";
+  id: "deepgram" | "groq";
   url: string;
 }
 
 const KEY_ROWS: KeyRow[] = [
   { id: "deepgram", url: "https://console.deepgram.com/signup" },
   { id: "groq", url: "https://console.groq.com/keys" },
-  { id: "openai", url: "https://platform.openai.com/api-keys" },
 ];
 
 /**
- * Murmur's whole "AI models" surface: the three provider keys, the dictation
+ * Murmur's whole "AI models" surface: the two provider keys, the dictation
  * language, and whether Groq cleans up the text. Everything else a provider
  * list would offer is deliberately absent.
  */
@@ -26,20 +25,17 @@ export default function MurmurKeysSection() {
   const { t } = useTranslation();
   const deepgramApiKey = useSettingsStore((s) => s.deepgramApiKey);
   const groqApiKey = useSettingsStore((s) => s.groqApiKey);
-  const openaiApiKey = useSettingsStore((s) => s.openaiApiKey);
   const setDeepgramApiKey = useSettingsStore((s) => s.setDeepgramApiKey);
   const setGroqApiKey = useSettingsStore((s) => s.setGroqApiKey);
-  const setOpenaiApiKey = useSettingsStore((s) => s.setOpenaiApiKey);
   const preferredLanguage = useSettingsStore((s) => s.preferredLanguage);
   const setPreferredLanguage = useSettingsStore((s) => s.setPreferredLanguage);
   const useCleanupModel = useSettingsStore((s) => s.useCleanupModel);
   const setUseCleanupModel = useSettingsStore((s) => s.setUseCleanupModel);
 
-  const values = { deepgram: deepgramApiKey, groq: groqApiKey, openai: openaiApiKey };
+  const values = { deepgram: deepgramApiKey, groq: groqApiKey };
   const setters = {
     deepgram: setDeepgramApiKey,
     groq: setGroqApiKey,
-    openai: setOpenaiApiKey,
   };
 
   return (

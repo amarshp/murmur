@@ -659,6 +659,7 @@
       "empty": "開始你的第一次聽寫",
       "emptyDescription": "你聽寫的文字會顯示在這裡。",
       "shortcutHint": "按 {{shortcut}} 開始說話。",
+      "shortcutHintHold": "Hold {{shortcut}} while you speak, then let go.",
       "dataRetentionDisabled": "資料保留已關閉。轉錄和音訊不會儲存至歷史記錄。",
       "welcomeBack": "歡迎回來",
       "welcomeBackNamed": "歡迎回來，{{name}}",
@@ -4882,7 +4883,7 @@
   },
   "murmurSetup": {
     "title": "Welcome to Murmur",
-    "subtitle": "Hold {{hotkey}}, speak, and your words are typed where your cursor is. Add your keys to start.",
+    "subtitle": "Press {{hotkey}} to dictate: your words are typed where your cursor is. Add your keys to start. You can change the shortcut, and hold-to-talk or press-twice, in Settings.",
     "optional": "optional",
     "getKey": "Get a key",
     "keyOk": "Key works",
@@ -4897,11 +4898,7 @@
     },
     "groq": {
       "label": "Groq key",
-      "help": "Cleans up filler words and punctuation. Without it, text is pasted as transcribed."
-    },
-    "openai": {
-      "label": "OpenAI key",
-      "help": "Backup transcription if Deepgram cannot be reached."
+      "help": "Cleans up filler words and punctuation, and transcribes if Deepgram cannot be reached. Without it, text is pasted as transcribed."
     }
   },
   "murmurKeys": {

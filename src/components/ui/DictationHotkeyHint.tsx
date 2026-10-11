@@ -2,9 +2,10 @@ import { Fragment } from "react";
 import { useTranslation } from "react-i18next";
 import { cn } from "../lib/utils";
 import { formatHotkeyLabel, parseHotkeyList } from "../../utils/hotkeys";
+import { useSettingsStore } from "../../stores/settingsStore";
 import { BIDI_VALUE_TOKEN, BidiInterpolatedText } from "./BidiInterpolatedText";
 
-/** "Press <hotkey> and start speaking.", with each dictation hotkey drawn as a key cap. */
+/** "Press <hotkey> and start speaking." (or "Hold ..." in hold-to-talk mode), each hotkey drawn as a key cap. */
 export default function DictationHotkeyHint({
   hotkey,
   className,
@@ -13,6 +14,7 @@ export default function DictationHotkeyHint({
   className?: string;
 }) {
   const { t } = useTranslation();
+  const holdToTalk = useSettingsStore((s) => s.activationMode === "push");
   return (
     <span
       className={cn(
@@ -21,7 +23,12 @@ export default function DictationHotkeyHint({
       )}
     >
       <BidiInterpolatedText
-        text={t("controlPanel.history.shortcutHint", { shortcut: BIDI_VALUE_TOKEN })}
+        text={t(
+          holdToTalk
+            ? "controlPanel.history.shortcutHintHold"
+            : "controlPanel.history.shortcutHint",
+          { shortcut: BIDI_VALUE_TOKEN }
+        )}
         value={
           <span className="inline-flex items-center gap-1">
             {parseHotkeyList(hotkey).map((hk, index) => (

@@ -136,6 +136,21 @@ function fitDictationErrorWindowToWorkArea(requestedSize, workArea) {
 // contract, and the only place they are defined.
 const PILL_WINDOW_SIZE = { width: 208, height: 120 };
 
+// The pill sits PILL_DOCK_INSET inside its window (dictation-panel.css's
+// .voice-pill-position-*, 0.75rem) so its halo and tooltip have click-through
+// headroom. A pill docked to a screen edge should rest PILL_EDGE_GAP from it,
+// not a window inset away, so a pill-sized window may overhang the work area
+// by the difference. Only the transparent headroom leaves the screen.
+const PILL_DOCK_INSET = 12;
+const PILL_EDGE_GAP = 4;
+const PILL_EDGE_OVERHANG = PILL_DOCK_INSET - PILL_EDGE_GAP;
+
+function pillEdgeOverhang(bounds) {
+  return bounds.width === PILL_WINDOW_SIZE.width && bounds.height === PILL_WINDOW_SIZE.height
+    ? PILL_EDGE_OVERHANG
+    : 0;
+}
+
 const WINDOW_SIZES = {
   // BASE and RECORDING are deliberately the same box. Resizing a transparent
   // always-on-top window paints one compositor frame of the stale texture
@@ -177,15 +192,20 @@ function resolveHorizontalWindowDirection(bounds, display, preferredPosition = "
 }
 
 /**
- * Where a dropped pill window settles: against the closest edge of the work
- * area (left, right, top or bottom), moving only along the axis of that edge
- * so the pill keeps its place along it. Deterministic, with no dead zone.
+ * Where a dropped pill window settles: against the closest of the left, right
+ * and bottom edges of the work area, moving only along the axis of that edge
+ * so the pill keeps its place along it. The window overhangs the edge by its
+ * transparent headroom (see PILL_EDGE_OVERHANG), so the pill itself rests a
+ * few pixels from the screen edge. The top edge is not a candidate: the pill
+ * docks to the bottom of its window, so a top snap would leave it floating a
+ * window's height below the edge. Deterministic, with no dead zone.
  */
 function resolveEdgeSnap(bounds, workArea) {
-  const left = workArea.x;
-  const right = workArea.x + workArea.width - bounds.width;
+  const overhang = pillEdgeOverhang(bounds);
+  const left = workArea.x - overhang;
+  const right = workArea.x + workArea.width - bounds.width + overhang;
   const top = workArea.y;
-  const bottom = workArea.y + workArea.height - bounds.height;
+  const bottom = workArea.y + workArea.height - bounds.height + overhang;
 
   const x = Math.min(Math.max(bounds.x, left), right);
   const y = Math.min(Math.max(bounds.y, top), bottom);
@@ -193,7 +213,6 @@ function resolveEdgeSnap(bounds, workArea) {
   const distances = [
     { edge: "left", d: x - left },
     { edge: "right", d: right - x },
-    { edge: "top", d: y - top },
     { edge: "bottom", d: bottom - y },
   ];
   const nearest = distances.reduce((a, b) => (b.d < a.d ? b : a));
@@ -203,8 +222,6 @@ function resolveEdgeSnap(bounds, workArea) {
       return { x: left, y, edge: "left" };
     case "right":
       return { x: right, y, edge: "right" };
-    case "top":
-      return { x, y: top, edge: "top" };
     default:
       return { x, y: bottom, edge: "bottom" };
   }
@@ -338,17 +355,21 @@ class WindowPositionUtil {
     const MARGIN = 4;
     const workArea = display.workArea || display.bounds;
 
+    // A pill-sized window overhangs the edge by its headroom so the pill rests
+    // PILL_EDGE_GAP from it; larger surfaces keep a plain margin inside.
+    const edgeInset = pillEdgeOverhang({ width, height }) ? -PILL_EDGE_OVERHANG : MARGIN;
+
     let x, y;
     if (position === "bottom-left") {
-      x = workArea.x + MARGIN;
-      y = workArea.y + workArea.height - height - MARGIN;
+      x = workArea.x + edgeInset;
+      y = workArea.y + workArea.height - height - edgeInset;
     } else if (position === "center") {
       x = Math.round(workArea.x + (workArea.width - width) / 2);
-      y = workArea.y + workArea.height - height - MARGIN;
+      y = workArea.y + workArea.height - height - edgeInset;
     } else {
       // bottom-right (default)
-      x = workArea.x + workArea.width - width - MARGIN;
-      y = workArea.y + workArea.height - height - MARGIN;
+      x = workArea.x + workArea.width - width - edgeInset;
+      y = workArea.y + workArea.height - height - edgeInset;
     }
 
     // Clamped to the display's own work area, never to zero: a monitor placed
@@ -366,9 +387,18 @@ class WindowPositionUtil {
   // there is invisible even though the window server still reports it on screen.
   static clampToWorkArea(bounds, display) {
     const workArea = display.workArea || display.bounds;
+    // A pill-sized window may hang its transparent headroom past the left,
+    // right and bottom edges (see PILL_EDGE_OVERHANG), never past the top.
+    const overhang = pillEdgeOverhang(bounds);
     return {
-      x: Math.max(workArea.x, Math.min(bounds.x, workArea.x + workArea.width - bounds.width)),
-      y: Math.max(workArea.y, Math.min(bounds.y, workArea.y + workArea.height - bounds.height)),
+      x: Math.max(
+        workArea.x - overhang,
+        Math.min(bounds.x, workArea.x + workArea.width - bounds.width + overhang)
+      ),
+      y: Math.max(
+        workArea.y,
+        Math.min(bounds.y, workArea.y + workArea.height - bounds.height + overhang)
+      ),
     };
   }
 

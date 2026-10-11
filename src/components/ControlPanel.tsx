@@ -849,6 +849,39 @@ export default function ControlPanel({ initialSettingsSection }: ControlPanelPro
     [toast, t, useCleanupModel]
   );
 
+  // A dictation the app closed on comes back as a failed row with its audio.
+  // Retry each one once on its own, so the words are in History to copy; a second
+  // failure stays a normal failed row. Tried ids persist so nothing loops.
+  const recoveredRetryBusy = useRef(false);
+  useEffect(() => {
+    if (recoveredRetryBusy.current) return;
+    const storageKey = "recoveredRetryTried";
+    let tried: number[] = [];
+    try {
+      tried = JSON.parse(localStorage.getItem(storageKey) || "[]");
+    } catch {
+      tried = [];
+    }
+    void import("../helpers/recoveredRetryPolicy.js").then(async ({ pickRecoveredToRetry }) => {
+      const ids = pickRecoveredToRetry(history, tried);
+      if (ids.length === 0 || recoveredRetryBusy.current) return;
+      recoveredRetryBusy.current = true;
+      try {
+        for (const id of ids) {
+          tried.push(id);
+          try {
+            localStorage.setItem(storageKey, JSON.stringify(tried.slice(-200)));
+          } catch {
+            // Storage unavailable: the in-memory list still prevents a loop this launch.
+          }
+          await retryTranscription(id, { isRecover: false });
+        }
+      } finally {
+        recoveredRetryBusy.current = false;
+      }
+    });
+  }, [history, retryTranscription]);
+
   const toggleShowDiscarded = useCallback(() => {
     loadTranscriptions(!showDiscarded);
   }, [loadTranscriptions, showDiscarded]);
